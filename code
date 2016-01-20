@@ -20,15 +20,15 @@ class Residue:
 #        self.AvgB = 0
         
 class Atom:
-    def __init__(self, name, b_factor): # need to be able to choose a constructor, should be possible
+#    def __init__(self, name, b_factor): # use *args, **kwargs to choose between b_factor or x,y,z?
 #    def __init__(self, number, name, chain, x, y, z, occupancy, b_factor):
-    def __init__(self, number, x, y, z):
+    def __init__(self, name, *args, **kwargs):
         self.number = int(number)
 #        self.name = name
 #        self.chain = chain
-        self.x = float(x)
-        self.y = float(y)
-        self.z = float(z)
+#        self.x = float(x)
+#        self.y = float(y)
+#        self.z = float(z)
 #        self.occupancy = float(occupancy)
 #        self.b_factor = float(b_factor)
 

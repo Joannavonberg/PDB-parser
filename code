@@ -7,9 +7,11 @@ temp = False
 T = ""
 filename = ""
 opdracht = ""
-class Chain:
-    def __init__(self, chain_letter):
-        self.chain_letter = chain_letter
+
+class Model:
+    def __init__(self, number):
+        self.number = number
+        self.res = []
 
 class Residue:
     def __init__(self, res_number):
@@ -21,8 +23,8 @@ class Residue:
         
 class Atom:
 #    def __init__(self, name, b_factor): # use *args, **kwargs to choose between b_factor or x,y,z?
-#    def __init__(self, number, name, chain, x, y, z, occupancy, b_factor):
-    def __init__(self, name, *args, **kwargs):
+#    def __init__(self, number, name, x, y, z, occupancy, b_factor):
+#    def __init__(self, name, *args, **kwargs):
         self.number = int(number)
 #        self.name = name
 #        self.chain = chain
@@ -87,6 +89,8 @@ def main():
         ReturnAvgBfactor()
     if opdracht == "tavg":
         ReturnTotalAvgB()
+    else:
+        # doe iets met symmetrie
         
 def LeesFile():
     global filename
@@ -98,13 +102,16 @@ def LeesFile():
         words = l.split()
         T = words[5]
     while l[0:4] != "ATOM":
+        if l[0:6] == "MODEL ":
+            mdl_number = l[10:14]
+            current_mdl = Model(int(mdl_number))
         l = f.readline()
-    while l[0:3] != "TER":
+    while l[0:3] != "TER" and l[0:6] != "ENDMDL":
         if l[0:4] == "ATOM":
             res_number = l[22:26]
             current_residue = Residue(res_number)
 #            current_residue = Residue(l[17:20], res_number)
-            residues.append(current_residue)
+            current_mdl.res.append(current_residue)
             while l[0:3] != "TER" and l[22:26] == res_number:
                 if l[0:4] == "ATOM":
                     current_atom = Atom(l[12:16], l[60:66]) # change this to the right values for number, x, y and z

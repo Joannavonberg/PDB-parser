@@ -11,6 +11,11 @@ opdracht = ""
 class Model:
     def __init__(self, number):
         self.number = number
+        self.chains = []
+
+class Chain:
+    def __init__(self, letter):
+        self.letter = letter
         self.res = []
 
 class Residue:

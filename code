@@ -134,6 +134,18 @@ def ReturnTotalAvgB():
                 nres += 1
     tavg = float(total/nres)
     print("The average b-factor (without considering hydrogens) is: %s" %tavg)
+    
+def WriteRDF():
+    f = open("RDF_pdb.rdf", 'w')
+    for m in models:
+        f.write(":Model%f\n" %m.number)
+        for c in m.chains:
+            f.write("\t:Chain%s %f_%s" (%c.letter, %m.number, %c.letter))
+    for m in models:
+        for c in m.chains:
+            f.write(":%f_%s" (%m.number, %c.letter))
+            for r in c.residues:
+                f.write("\t:res%f %f_%s_%f" (%r.number, %m.number, %c.letter, %r.number))
 
 if __name__ == "__main__":
     main()

@@ -39,20 +39,18 @@ def main():
     global opdracht
     print("What PDB-file do you want to be read?")
     filename = sys.stdin.readline()[:-1]
-    print("Do you want to extract b-factors? y/n If you answer n, the RMSF of different molecules in the unit cell will be calculated.")
+    print("Do you want to extract b-factors?")
     if sys.stdin.readline()[:-1] == "y":
         print("Do you want the average b-factor per residue (avg), the c-alpha b-factor per residue (ca) or the total average b-factor (tavg)?")
         opdracht = sys.stdin.readline()[:-1]
-        #print "yes"
     else:
-        opdracht = "RMSF"
-#    temperature = sys.argv[3]
-#    if temperature == "temp":
-#        temp = True
-#    print opdracht
+        print("Do you want to convert this PDB-file to an RDF-file?")
+        if sys.stdin.readline() == "y":
+            opdracht = "RDF"
+        else:
+            opdracht = "RMSF"
     ReadFile()
     if opdracht == "ca":
-        print "opdracht == ca"
         Return_CA_Bfactors()
     if opdracht == "avg":
         ReturnAvgBfactor()
@@ -60,7 +58,8 @@ def main():
         ReturnTotalAvgB()
     if opdracht == "RMSF":
         SymRMSF()
-        #cAlphaRMSF()
+    if opdracht == "RDF":
+        WriteRDF()
         
 # reading for RMSF now sees MODEL entries and chains as the same thing, while for MD-pdb's each model is a different time step and the chains are the different molecules
 def ReadFile():
@@ -114,15 +113,6 @@ def ReadFile():
     f.close()
 
 def SymRMSF():
-    # write to three seperate files the x, y and z-coordinates
-    #f = open("x.txt", 'w')
-    #x = []
-    #y = []
-    #z = []
-    #print("In SymRMSF")
-    #print(models[0].number)
-    #for c in models[0].chains:
-    #print(c.letter)
     for m in models:
         fx = open("x%s.txt" %m.number, 'w')
         fy = open("y%s.txt" %m.number, 'w')
@@ -195,6 +185,25 @@ def ReturnTotalAvgB():
                     nres += 1
     tavg = float(total/nres)
     print("The average b-factor (without considering hydrogens) is: %s" %tavg)
+    
+def WriteRDF():
+    f = open("RDF_pdb.rdf", 'w')
+    for m in models:
+        f.write(":Model%f\n" %m.number)
+        for c in m.chains:
+            f.write("\t:Chain%s %f_%s" (%c.letter, %m.number, %c.letter))
+        for c in m.chains:
+            f.write(":%f_%s" (%m.number, %c.letter))
+            for r in c.residues:
+ #               f.write("\t:res%f %f_%s_%f" (%r.number, %m.number, %c.letter, %r.number))
+                for a in r.atoms:
+                    f.write("\t:Atom%f %f_%s_%f" (%a.number, %m.number, %c.letter, %a.number))
+                for a in r.atoms:
+                    f.write(":%f_%s_%f" (%m.number, %c.letter, %a.number)
+                    f.write("\t:x %f" %a.x)
+                    f.write("\t:y %f" %a.y)
+                    f.write("\t:z %f" %a.z)
+    f.close()
 
 if __name__ == "__main__":
     main()

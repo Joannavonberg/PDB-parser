@@ -155,6 +155,7 @@ def WriteRDF():
                     f.write("\t:x %f" %a.x)
                     f.write("\t:y %f" %a.y)
                     f.write("\t:z %f" %a.z)
+    f.close()
 
 if __name__ == "__main__":
     main()

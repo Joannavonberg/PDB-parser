@@ -191,15 +191,15 @@ def WriteRDF():
     for m in models:
         f.write(":Model%f\n" %m.number)
         for c in m.chains:
-            f.write("\t:Chain%s %f_%s" (%c.letter, %m.number, %c.letter))
+            f.write("\t:Chain%s %f_%s" %(c.letter, m.number, c.letter))
         for c in m.chains:
             f.write(":%f_%s" (%m.number, %c.letter))
             for r in c.residues:
  #               f.write("\t:res%f %f_%s_%f" (%r.number, %m.number, %c.letter, %r.number))
                 for a in r.atoms:
-                    f.write("\t:Atom%f %f_%s_%f" (%a.number, %m.number, %c.letter, %a.number))
+                    f.write("\t:Atom%f %f_%s_%f" %(a.number, m.number, c.letter, a.number))
                 for a in r.atoms:
-                    f.write(":%f_%s_%f" (%m.number, %c.letter, %a.number)
+                    f.write(":%f_%s_%f" %(m.number, c.letter, a.number)
                     f.write("\t:x %f" %a.x)
                     f.write("\t:y %f" %a.y)
                     f.write("\t:z %f" %a.z)

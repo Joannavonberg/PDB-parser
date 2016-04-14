@@ -39,15 +39,16 @@ def main():
     global opdracht
     print("What PDB-file do you want to be read?")
     filename = sys.stdin.readline()[:-1]
-    print("Do you want to extract b-factors? y/n If you answer n, the RMSF of different molecules in the unit cell will be calculated.")
+    print("Do you want to extract b-factors? y/n")
     if sys.stdin.readline() == "y":
         print("Do you want the average b-factor per residue (avg), the c-alpha b-factor per residue (ca) or the total average b-factor (tavg)?")
         opdracht = sys.stdin.readline()[:-1]
     else:
-        opdracht = "RMSF"
-#    temperature = sys.argv[3]
-#    if temperature == "temp":
-#        temp = True
+        print("Do you want to convert this PDB-file to an RDF-file?")
+        if sys.stdin.readline() == "y":
+            opdracht = "RDF"
+        else:
+            opdracht = "RMSF"
     ReadFile()
     if opdracht == "ca":
         Return_CA_Bfactors()
@@ -57,6 +58,8 @@ def main():
         ReturnTotalAvgB()
     if opdracht == "RMSF":
         SymRMSF()
+    if opdracht == "RDF":
+        WriteRDF()
         
 # reading for RMSF now sees MODEL entries and chains as the same thing, while for MD-pdb's each model is a different time step and the chains are the different molecules
 def ReadFile():
@@ -141,11 +144,12 @@ def WriteRDF():
         f.write(":Model%f\n" %m.number)
         for c in m.chains:
             f.write("\t:Chain%s %f_%s" (%c.letter, %m.number, %c.letter))
-    for m in models:
         for c in m.chains:
             f.write(":%f_%s" (%m.number, %c.letter))
             for r in c.residues:
-                f.write("\t:res%f %f_%s_%f" (%r.number, %m.number, %c.letter, %r.number))
+ #               f.write("\t:res%f %f_%s_%f" (%r.number, %m.number, %c.letter, %r.number))
+                for a in r.atoms:
+                    f.write("\t:Atom%f %f_%s_%f" (%a.number, %m.number, %c.letter, %a.number))
 
 if __name__ == "__main__":
     main()

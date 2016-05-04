@@ -2,16 +2,17 @@
 
 import sys
 
-models = []
+#models = []
+chains = []
 temp = False
 T = ""
 filename = ""
 opdracht = ""
 
-class Model:
-    def __init__(self, number):
-        self.number = number
-        self.chains = []
+#class Model:
+#    def __init__(self, number):
+#        self.number = number
+#        self.chains = []
 
 class Chain:
     def __init__(self, letter):
@@ -20,7 +21,6 @@ class Chain:
 
 class Residue:
     def __init__(self, number):
-#        self.res_type = res_type
         self.number = int(number)
         self.atoms = []
         self.CA = Atom(0, 0)
@@ -49,50 +49,41 @@ def main():
             opdracht = "RDF"
         else:
             opdracht = "RMSF"
-    ReadFile()
-    if opdracht == "ca":
-        Return_CA_Bfactors()
-    if opdracht == "avg":
-        ReturnAvgBfactor()
-    if opdracht == "tavg":
-        ReturnTotalAvgB()
-    if opdracht == "RMSF":
-        SymRMSF()
+    read_file()
     if opdracht == "RDF":
         WriteRDF()
-        
-# reading for RMSF now sees MODEL entries and chains as the same thing, while for MD-pdb's each model is a different time step and the chains are the different molecules
-def ReadFile():
+
+def read_file():
     print " in ReadFile"
-    global filename
+    global filename, chains
     f = open(filename, 'r')
     l = f.readline()
     mdlnum = 0
-    current_mdl = Model(mdlnum)
-    models.append(current_mdl)
+    #current_mdl = Model(mdlnum)
+    #models.append(current_mdl)
     while l[0:6] != "MODEL " and l[0:4] != "ATOM":
         l = f.readline()
     while l: # until the eof is reached
         if l[0:3] == "TER" or l[0:6] == "CONECT":
+            if opdracht == "RMSF":
+                sym_rmsf(mdlnum)
+                chains = []
+            if opdracht == "ca":
+                return_ca_bfactors(mdlnum)
+                chains = []
+            if opdracht == "avg":
+                return_avg_bfactors(mdlnum)
+                chains = []
             while l and l[0:6] != "MODEL " and l[0:4] != "ATOM":
                 l = f.readline()
             if not l:
                 break
         if l[0:6] == "MODEL ":
-            # if there are no real models yet
-            if current_mdl.number == 0:
-                models.pop()
             mdlnum += 1
-            current_mdl = Model(mdlnum)
-            models.append(current_mdl)
             l = f.readline()
-        """if not current_mdl:
-            current_mdl = Model(0)
-            models.append(current_mdl)"""
         chain_letter = l[21]
         current_chain = Chain(chain_letter)
-        current_mdl.chains.append(current_chain)
-        #print(l)
+        chains.append(current_chain)
         while l[0:3] != "TER" and l[0:6] != "CONECT" and l[21] == chain_letter:
             if l[0:4] == "ATOM":
                 res_number = l[22:26]
@@ -112,21 +103,16 @@ def ReadFile():
                 l = f.readline()
     f.close()
 
-def SymRMSF():
-    for m in models:
-        fx = open("x%s.txt" %m.number, 'w')
-        fy = open("y%s.txt" %m.number, 'w')
-        fz = open("z%s.txt" %m.number, 'w')
-        for c in m.chains:
-            #print("model")
-            for r in c.res:
-                for a in r.atoms:
-                    fx.write(str(a.x) + "\n")
-                    fy.write(str(a.y) + "\n")
-                    fz.write(str(a.z) + "\n")
-                #x.append(str(a.x))
-                #y.append(str(a.y))
-                #z.append(str(a.z))
+def sym_rmsf(number):
+    fx = open("x%s.txt" %number, 'w')
+    fy = open("y%s.txt" %number, 'w')
+    fz = open("z%s.txt" %number, 'w')
+    for c in chains:
+        for r in c.res:
+            for a in r.atoms:
+                fx.write(str(a.x) + "\n")
+                fy.write(str(a.y) + "\n")
+                fz.write(str(a.z) + "\n")
     fx.close()
     fy.close()
     fz.close()
@@ -147,22 +133,21 @@ def cAlphaRMSF():
         
 
 #  This method writes all B-factors from the C-alpha's to a file
-def Return_CA_Bfactors():
-    print "In return ca"
+def return_ca_bfactors(num):
     global filename
-    bestand = open(filename[0:-4] +'_CA.txt', 'w')
+    bestand = open(filename[0:-4] +'_CA_%.0f.txt' %num, 'w')
     if temp:
         bestand.write("# Experimental conditions - Temperature : %s"%T)
-    for c in models[0].chains:
+    for c in chains:
         for r in c.res:
             bestand.write(str(r.number) + " " + str(r.CA.b_factor) + "\n")
     bestand.close()
 
 # This method first calculates, and then writes the average B-factor per residue to a file
-def ReturnAvgBfactor():
+def return_avg_bfactors(num):
     global filename
-    bestand = open(filename[0:-4] + '_AvgB.txt', 'w')
-    for c in models[0].chains:
+    bestand = open(filename[0:-4] + '_AvgB_%.0f.txt' %num, 'w')
+    for c in chains:
         for r in c.res:
             total = float(0)
             t = int(0)
@@ -174,7 +159,7 @@ def ReturnAvgBfactor():
     bestand.close()
     
 # This method calculates the total average B-factor and writes it to the terminal
-def ReturnTotalAvgB():
+def return_tot_avg_bfac():
     for c in models[0].chains:
         for r in c.res:
             total = float(0)
@@ -186,7 +171,7 @@ def ReturnTotalAvgB():
     tavg = float(total/nres)
     print("The average b-factor (without considering hydrogens) is: %s" %tavg)
     
-def WriteRDF():
+"""def WriteRDF():
     f = open("RDF_pdb.rdf", 'w')
     for m in models:
         f.write(":Model%f\n" %m.number)
@@ -204,6 +189,6 @@ def WriteRDF():
                     f.write("\t:y %f" %a.y)
                     f.write("\t:z %f" %a.z)
     f.close()
-
+"""
 if __name__ == "__main__":
     main()
